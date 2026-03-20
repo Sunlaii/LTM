@@ -1,70 +1,93 @@
 package week7;
+
+import java.io.*;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.net.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 public class W5_Server {
-    public static void main(String[] args) {
-        int port = 1234;
-        try (DatagramSocket serverSocket = new DatagramSocket(port)) {
-            System.out.println("UDP Server đang chờ nhận link Tiki tại cổng " + port + "...");
+    private int port;
 
-            byte[] receiveData = new byte[1024];
+    public W5_Server(int port) {
+        this.port = port;
+    }
 
+    public void start() {
+        try (ServerSocket server = new ServerSocket(port)) {
+            System.out.println("TCP Server đang lắng nghe tại port " + port);
             while (true) {
-                // 1. Nhận link từ Client
-                DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-                serverSocket.receive(receivePacket);
+                Socket socket = server.accept();
+                handleClient(socket);
+            }
+        } catch (IOException e) {
+            System.err.println("Lỗi khởi tạo server socket: " + e.getMessage());
+        }
+    }
 
-                String link = new String(receivePacket.getData(), 0, receivePacket.getLength()).trim();
-                System.out.println("\nNhận được link từ Client: " + link);
+    private void handleClient(Socket socket) {
+        System.out.println("Đã chấp nhận kết nối từ client: " + socket.getRemoteSocketAddress());
 
-                String responseMsg = "";
+        // Sử dụng UTF-8 để không bị lỗi tiếng Việt
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+             PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8), true)) {
 
-                try {
-                    // 2. Sử dụng Jsoup để kết nối và lấy dữ liệu trang web
-                    // Thêm User-Agent để tránh bị Tiki chặn do tưởng là bot
-                    Document doc = Jsoup.connect(link)
-                            .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
-                            .timeout(10000)
-                            .get();
-
-                    // 3. Lấy tên sản phẩm (Thường nằm trong thẻ h1 hoặc title)
-                    String productName = "Không tìm thấy tên";
-                    Element nameElement = doc.selectFirst("h1"); // H1 thường chứa tên sản phẩm trên Tiki
-                    if (nameElement != null) {
-                        productName = nameElement.text();
-                    } else {
-                        productName = doc.title(); // Fallback dùng thẻ title
-                    }
-
-                    // 4. Lấy giá sản phẩm (Tìm theo class CSS chứa giá)
-                    String productPrice = "Không tìm thấy giá";
-                    // Class này có thể thay đổi tùy theo bản cập nhật UI của Tiki (.product-price__current-price là class phổ biến)
-                    Element priceElement = doc.selectFirst(".product-price__current-price");
-                    if (priceElement != null) {
-                        productPrice = priceElement.text();
-                    }
-
-                    responseMsg = "Tên sản phẩm: " + productName + "\nGiá: " + productPrice;
-                    System.out.println("Đã cào xong dữ liệu, chuẩn bị gửi về Client...");
-
-                } catch (Exception ex) {
-                    responseMsg = "Lỗi khi truy cập link hoặc bóc tách dữ liệu: " + ex.getMessage();
+            String categoryUrl;
+            while ((categoryUrl = reader.readLine()) != null) {
+                if (categoryUrl.equalsIgnoreCase("bye")) {
+                    System.out.println("Client đã ngắt kết nối.");
+                    break;
                 }
 
-                // 5. Gửi dữ liệu (Tên + Giá) về lại cho Client
-                byte[] sendData = responseMsg.getBytes(StandardCharsets.UTF_8);
-                InetAddress clientAddress = receivePacket.getAddress();
-                int clientPort = receivePacket.getPort();
+                System.out.println("Đang xử lý link danh mục: " + categoryUrl);
 
-                DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddress, clientPort);
-                serverSocket.send(sendPacket);
+                try {
+                    // Kết nối tới trang danh mục của Tiki
+                    Document doc = Jsoup.connect(categoryUrl)
+                            .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                            .timeout(15000)
+                            .get();
+
+                    // Tìm tất cả các khối sản phẩm (Tiki thường dùng các class/thuộc tính này cho item sản phẩm)
+                    Elements products = doc.select("a.product-item, [data-view-id='product_list_item']");
+
+                    if (products.isEmpty()) {
+                        writer.println("Không tìm thấy sản phẩm nào hoặc link không đúng chuẩn danh mục Tiki.");
+                    } else {
+                        writer.println("--- DANH SÁCH SẢN PHẨM ---");
+                        int count = 1;
+                        for (Element product : products) {
+                            // Lấy tên (thường nằm trong thẻ h3 hoặc div có class name)
+                            Element nameEl = product.selectFirst("h3, .name");
+                            String name = (nameEl != null) ? nameEl.text() : "Chưa cập nhật tên";
+
+                            // Lấy giá (thường nằm trong div có class chứa chữ price)
+                            Element priceEl = product.selectFirst(".price-discount__price");
+                            String price = (priceEl != null) ? priceEl.text() : "Chưa cập nhật giá";
+
+                            writer.println(count + ". " + name + " | Giá: " + price);
+                            count++;
+
+                            // Giới hạn gửi về khoảng 20 sản phẩm đầu tiên để tránh console quá dài
+                            if (count > 20) break;
+                        }
+                    }
+                } catch (Exception e) {
+                    writer.println("Lỗi khi cào dữ liệu từ Tiki: " + e.getMessage());
+                }
+
+                writer.println("<END>"); // Dấu hiệu kết thúc phản hồi
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            System.err.println("Lỗi kết nối từ client: " + e.getMessage());
         }
+    }
+
+    public static void main(String[] args) {
+        W5_Server server = new W5_Server(12345);
+        server.start();
     }
 }
