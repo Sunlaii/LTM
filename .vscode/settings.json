@@ -27,8 +27,8 @@
         "."
     ],
     "java.project.referencedLibraries": [
-        "c:\\Users\\hihi\\Downloads\\jsoup-1.22.1.jar",
-        "c:\\Users\\hihi\\Downloads\\json-20250107.jar"
+        "week7/lib/**/*.jar"
+
     ],
     "java.debug.settings.onBuildFailureProceed": true
 }

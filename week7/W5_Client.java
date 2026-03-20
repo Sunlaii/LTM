@@ -1,57 +1,42 @@
 package week7;
-
-import java.io.*;
-import java.net.Socket;
+import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
-
 public class W5_Client {
-    private String host;
-    private int port;
-
-    public W5_Client(String host, int port) {
-        this.host = host;
-        this.port = port;
-    }
-
-    // Khởi tạo Client socket và gắn kết stream
-    public void start() {
-        try (Socket socket = new Socket(host, port)) {
-            System.out.println("Đã kết nối đến server " + socket.getRemoteSocketAddress());
-            startCommunication(socket);
-        } catch (IOException e) {
-            System.err.println("Lỗi kết nối đến server: " + e.getMessage());
-        }
-    }
-
-    // Gắn kết stream
-    private void startCommunication(Socket socket) {
-        try (Scanner scanner = new Scanner(System.in);
-             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-             PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true)) {
-            String userInput;
-            while (true) {
-                System.out.print("Nhập dữ liệu: ");
-                userInput = scanner.nextLine();
-                writer.println(userInput); // Gửi dữ liệu --> server
-                String response;
-                while((response = reader.readLine())!=null){
-                    if(response.equals("<END>")) // Server sẽ gửi chuỗi <END> để báo hiệu kết thúc tin nhắn.
-                        break;
-                    System.out.println(response);
-                }
-                if(userInput.equalsIgnoreCase("bye")){
-                    System.out.println("Client gửi yêu cầu đóng kết nối.");
-                    break;
-                }
-            }
-        } catch (IOException e) {
-            System.out.println("Lỗi gửi/nhận dữ liệu: " + e.getMessage());
-        }
-
-    }
-
     public static void main(String[] args) {
-        W5_Client client = new W5_Client("localhost", 12345);
-        client.start();
+        String host = "localhost";
+        int port = 1234;
+
+        try (DatagramSocket clientSocket = new DatagramSocket();
+             Scanner sc = new Scanner(System.in)) {
+
+            InetAddress address = InetAddress.getByName(host);
+
+            // 1. Nhập link Tiki từ bàn phím
+            System.out.print("Nhập link sản phẩm Tiki: ");
+            String link = sc.nextLine();
+            byte[] sendData = link.getBytes(StandardCharsets.UTF_8);
+
+            // 2. Gửi link lên Server
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, address, port);
+            clientSocket.send(sendPacket);
+
+            System.out.println("Đang chờ phản hồi từ Server...");
+
+            // 3. Nhận phản hồi (Tên & Giá) từ Server
+            // Đặt buffer lớn hơn một chút vì tên sản phẩm có thể dài
+            byte[] receiveData = new byte[4096];
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+            clientSocket.receive(receivePacket);
+
+            // 4. In kết quả
+            String response = new String(receivePacket.getData(), 0, receivePacket.getLength(), StandardCharsets.UTF_8  );
+            System.out.println("\n--- THÔNG TIN SẢN PHẨM ---");
+            System.out.println(response);
+            System.out.println("--------------------------");
+
+        } catch (Exception e) {
+            System.out.println("Lỗi Client: " + e.getMessage());
+        }
     }
 }

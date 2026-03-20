@@ -1,59 +1,70 @@
 package week7;
-
-import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.net.*;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
 public class W5_Server {
-    private int port;
-
-    // Constructor
-    public W5_Server(int port) {
-        this.port = port;
-    }
-
-    // Khởi tạo server, tạo đối tượng socket tương ứng từng client
-    public void start() {
-        try (ServerSocket server = new ServerSocket(port)) {
-            while (true) {
-                System.out.println("Server đang lắng nghe tại port " + port);
-                Socket socket = server.accept();
-                handleClient(socket);
-            }
-        } catch (IOException e) {
-            System.err.println("Lỗi khởi tạo server socket: " + e.getMessage());
-        }
-    }
-
-    // Xử lý khi có client kết nối
-    private void handleClient(Socket socket) {
-        System.out.println("Đã chấp nhận kết nối từ client: " + socket.getRemoteSocketAddress());
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-             PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true)) {
-            String dataFromClient;
-            while ((dataFromClient = reader.readLine()) != null) {
-                System.out.println("Server nhận: " + dataFromClient);
-                if (dataFromClient.equalsIgnoreCase("bye")) {
-                    System.out.println("Server nhận yêu cầu đóng kết nối từ client.");
-                    break;
-                }
-                String response = processData(dataFromClient);
-                writer.println(response);
-                writer.println("<END>"); // Báo client biết đã kết thúc gửi dữ liệu.
-            }
-        } catch (IOException e) {
-            System.err.println("Lỗi kết nối từ client: " + e.getMessage());
-        }
-    }
-
-    // Xử lý dữ liệu
-    private String processData(String input) {
-        StringBuilder response = new StringBuilder(input);
-        return "Server phản hồi: " + response.reverse().toString();
-    }
-
     public static void main(String[] args) {
-        W5_Server server = new W5_Server(12345);
-        server.start();
+        int port = 1234;
+        try (DatagramSocket serverSocket = new DatagramSocket(port)) {
+            System.out.println("UDP Server đang chờ nhận link Tiki tại cổng " + port + "...");
+
+            byte[] receiveData = new byte[1024];
+
+            while (true) {
+                // 1. Nhận link từ Client
+                DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+                serverSocket.receive(receivePacket);
+
+                String link = new String(receivePacket.getData(), 0, receivePacket.getLength()).trim();
+                System.out.println("\nNhận được link từ Client: " + link);
+
+                String responseMsg = "";
+
+                try {
+                    // 2. Sử dụng Jsoup để kết nối và lấy dữ liệu trang web
+                    // Thêm User-Agent để tránh bị Tiki chặn do tưởng là bot
+                    Document doc = Jsoup.connect(link)
+                            .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+                            .timeout(10000)
+                            .get();
+
+                    // 3. Lấy tên sản phẩm (Thường nằm trong thẻ h1 hoặc title)
+                    String productName = "Không tìm thấy tên";
+                    Element nameElement = doc.selectFirst("h1"); // H1 thường chứa tên sản phẩm trên Tiki
+                    if (nameElement != null) {
+                        productName = nameElement.text();
+                    } else {
+                        productName = doc.title(); // Fallback dùng thẻ title
+                    }
+
+                    // 4. Lấy giá sản phẩm (Tìm theo class CSS chứa giá)
+                    String productPrice = "Không tìm thấy giá";
+                    // Class này có thể thay đổi tùy theo bản cập nhật UI của Tiki (.product-price__current-price là class phổ biến)
+                    Element priceElement = doc.selectFirst(".product-price__current-price");
+                    if (priceElement != null) {
+                        productPrice = priceElement.text();
+                    }
+
+                    responseMsg = "Tên sản phẩm: " + productName + "\nGiá: " + productPrice;
+                    System.out.println("Đã cào xong dữ liệu, chuẩn bị gửi về Client...");
+
+                } catch (Exception ex) {
+                    responseMsg = "Lỗi khi truy cập link hoặc bóc tách dữ liệu: " + ex.getMessage();
+                }
+
+                // 5. Gửi dữ liệu (Tên + Giá) về lại cho Client
+                byte[] sendData = responseMsg.getBytes(StandardCharsets.UTF_8);
+                InetAddress clientAddress = receivePacket.getAddress();
+                int clientPort = receivePacket.getPort();
+
+                DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddress, clientPort);
+                serverSocket.send(sendPacket);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
