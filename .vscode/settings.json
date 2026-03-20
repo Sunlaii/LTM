@@ -1,0 +1,34 @@
+{
+    // Editor settings
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.trimAutoWhitespace": true,
+
+    // File settings
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.exclude": {
+        "**/.git": true,
+        "**/.DS_Store": true,
+        "**/node_modules": true
+    },
+
+    // Search settings
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/.git": true
+    },
+
+    // Terminal settings
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "java.project.sourcePaths": [
+        "."
+    ],
+    "java.project.referencedLibraries": [
+        "c:\\Users\\hihi\\Downloads\\jsoup-1.22.1.jar",
+        "c:\\Users\\hihi\\Downloads\\json-20250107.jar"
+    ],
+    "java.debug.settings.onBuildFailureProceed": true
+}
