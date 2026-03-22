@@ -27,7 +27,7 @@
         "."
     ],
     "java.project.referencedLibraries": [
-        "week7/lib/**/*.jar"
+        "lib/**/*.jar"
 
     ],
     "java.debug.settings.onBuildFailureProceed": true
