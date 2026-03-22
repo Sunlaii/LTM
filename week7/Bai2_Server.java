@@ -11,7 +11,7 @@ import java.util.Scanner;
 public class Bai2_Server {
     private int port;
     private int bufferSize;
-    private DatagramPacket receivePacket; // chia sẻ giữa sendData và receivedData
+    private DatagramPacket receivePacket; // chia se giua sendData va receivedData
 
     public Bai2_Server(int port, int bufferSize) {
         this.port = port;
@@ -21,10 +21,10 @@ public class Bai2_Server {
     public void start(){
         try(DatagramSocket socket = new DatagramSocket(port)){
             while(true){
-                String receivedData = receivedData(socket); // nên bắt SocketTimeoutException ở đây
-                System.out.println("Server nhận: " + receivedData);
+                String receivedData = receivedData(socket); // nen bat SocketTimeoutException o day
+                System.out.println("Server nhan: " + receivedData);
                 if(receivedData.equalsIgnoreCase("exit")){
-                    System.out.println("Server đóng kết nối.");
+                    System.out.println("Server dong ket noi.");
                     break;
                 }
                 sendData(socket, receivedData);
@@ -44,17 +44,17 @@ public class Bai2_Server {
   private int digitSum(int num) {
     int sum = 0;
 
-    // Lặp cho đến khi số num bị cắt hết (bằng 0)
+    // Lap cho den khi so num bi cat het (bang 0)
     while (num > 0) {
-        sum += num % 10; // Lấy chữ số cuối cùng cộng vào tổng
-        num /= 10;       // Cắt bỏ chữ số cuối cùng đi
+        sum += num % 10; // Lay chu so cuoi cung cong vao tong
+        num /= 10;       // Cat bo chu so cuoi cung di
     }
 
     return sum;
 }
 
     private int findNumbersWithDigitSum(int n) {
-        //tìm tổng số lượng số có tổng chữ số bằng n trong file data.txt
+        //tim tong so luong so co tong chu so bang n trong file data.txt
         int count = 0;
         try (Scanner scanner = new Scanner(new File("week7/data.txt"))) {
             while (scanner.hasNextInt()) {
@@ -64,7 +64,7 @@ public class Bai2_Server {
                 }
             }
         } catch (IOException e) {
-            System.err.println("Lỗi đọc file: " + e.getMessage());
+            System.err.println("Loi doc file: " + e.getMessage());
         }
         return count;
     }
@@ -73,12 +73,12 @@ public class Bai2_Server {
         try {
             int n = Integer.parseInt(receivedData.trim());
             int count = findNumbersWithDigitSum(n);
-            String response = "Số lượng số có tổng chữ số bằng " + n + " là: " + count;
+            String response = "So luong so co tong chu so bang " + n + " la: " + count;
             byte[] responseBytes = response.getBytes(StandardCharsets.UTF_8);
             DatagramPacket packet = new DatagramPacket(responseBytes, responseBytes.length, receivePacket.getAddress(), receivePacket.getPort());
             socket.send(packet);
         } catch (NumberFormatException e) {
-            String errorMessage = "Dữ liệu không hợp lệ: " + receivedData;
+            String errorMessage = "Du lieu khong hop le: " + receivedData;
             byte[] errorBytes = errorMessage.getBytes(StandardCharsets.UTF_8);
             DatagramPacket errorPacket = new DatagramPacket(errorBytes, errorBytes.length, receivePacket.getAddress(), receivePacket.getPort());
             socket.send(errorPacket);

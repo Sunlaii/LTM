@@ -1,48 +1,67 @@
 package week7;
-
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.io.*;
+import java.net.*;
+import java.util.regex.*;
+import org.jsoup.Jsoup;
+import org.json.JSONObject;
 
 public class bai1_3123410245_HuaMinhNhat_Server {
-    private int port;
-    private int bufferSize;
-    private DatagramPacket receivePacket; // chia sẻ giữa sendData và receivedData
+    public static void main(String[] args) {
+        int port = 5000; // Dat port cho Server
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
+            System.out.println("Server dang chay o port " + port + "...");
 
-    public bai1_3123410245_HuaMinhNhat_Server(int port, int bufferSize) {
-        this.port = port;
-        this.bufferSize = bufferSize;
-    }
+            while (true) {
+                try (Socket socket = serverSocket.accept();
+                     BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                     PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
 
-    public void start(){
-        try(DatagramSocket socket = new DatagramSocket(port)){
-            while(true){
-                String receivedData = receivedData(socket); // nên bắt SocketTimeoutException ở đây
-                System.out.println("Server nhận: " + receivedData);
-                if(receivedData.equalsIgnoreCase("exit")){
-                    System.out.println("Server đóng kết nối.");
-                    break;
+                    String url = in.readLine();
+                    if (url != null && !url.isEmpty()) {
+                        System.out.println("Nhan link tu client: " + url);
+                        String result = GetTikiLink(url);
+                        out.println(result);
+                    }
+                } catch (Exception e) {
+                    System.out.println("Loi xu ly client: " + e.getMessage());
                 }
-                sendData(socket, receivedData);
             }
-        }catch(IOException e){
-            System.err.println(e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    private String receivedData(DatagramSocket socket) throws IOException {
-        receivePacket = new DatagramPacket(new byte[bufferSize], bufferSize);
-        socket.receive(receivePacket);
-        byte[] receivedBytes = Arrays.copyOf(receivePacket.getData(), receivePacket.getLength());
-        return new String(receivedBytes, StandardCharsets.UTF_8);
-    }
-   //gọi api tiki để lấy tên và giá sản phẩm từ link đã nhận được rồi gửi lại cho client
-   //lấy tên và giá sản phẩm
-  
-    public static void main(String[] args) {
-        bai1_3123410245_HuaMinhNhat_Server server = new bai1_3123410245_HuaMinhNhat_Server(1234, 1024);
-        server.start();
+    private static String GetTikiLink(String url) {
+        try {
+            // Trich xuat ID san pham tu URL Tiki
+            Pattern pattern = Pattern.compile("p(\\d+)\\.html");
+            Matcher matcher = pattern.matcher(url);
+            String productId = "";
+
+            if (matcher.find()) {
+                productId = matcher.group(1);
+            } else {
+                return "Loi: Khong tim thay ID san pham trong link cung cap.";
+            }
+
+            // Goi API cua Tiki
+            String apiUrl = "https://tiki.vn/api/v2/products/" + productId;
+            String jsonStr = Jsoup.connect(apiUrl)
+                                  .ignoreContentType(true)
+                                  .userAgent("Mozilla/5.0")
+                                  .execute()
+                                  .body();
+
+            // Phan tich JSON bang thu vien json
+            JSONObject json = new JSONObject(jsonStr);
+            String name = json.getString("name");
+            long price = json.getLong("price");
+
+            // Tra ve dinh dang: Ten san pham | Gia VND
+            return "Ten: " + name + " | Gia: " + String.format("%,d", price) + " VND";
+
+        } catch (Exception e) {
+            return "Loi khi lay thong tin san pham: " + e.getMessage();
+        }
     }
 }

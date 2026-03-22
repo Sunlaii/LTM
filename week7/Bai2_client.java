@@ -22,34 +22,34 @@ public class Bai2_client {
     public void start(){
             try(DatagramSocket socket = new DatagramSocket();
             Scanner scanner = new Scanner(System.in)){
-                socket.setSoTimeout(5000); // đặt thời gian timeout cho receive là 5s
+                socket.setSoTimeout(5000); // dat thoi gian timeout cho receive la 5s
                 InetAddress address = InetAddress.getByName(host);
                 while(true){
                     String input = getInput(scanner);
                     sendData(socket, address, input);
                     if(input.equalsIgnoreCase("exit")){
-                        System.out.println("Client nhận được yêu cầu kết thúc");
+                        System.out.println("Client nhan duoc yeu cau ket thuc");
                         break;
                     }
-                    String receivedData = receiveData(socket); // nên bắt SocketTimeoutException ở đây
-                    System.out.println("Client nhận: " + receivedData);
+                    String receivedData = receiveData(socket); // nen bat SocketTimeoutException o day
+                    System.out.println("Client nhan: " + receivedData);
                 }
             }catch(IOException e){
                 System.err.println(e.getMessage());
             }
     }
-    // Nhận dữ liệu từ bàn phím
+    // Nhan du lieu tu ban phim
     private String getInput(Scanner scanner){
-        System.out.print("Nhập dữ liệu: ");
+        System.out.print("Nhap du lieu: ");
         return scanner.nextLine();
     }
-    // Gửi 1 số n nguyên dương đến Server
+    // Gui 1 so n nguyen duong den Server
     private void sendData(DatagramSocket socket, InetAddress address, String input) throws IOException {
         byte[] dataBytes = input.getBytes(StandardCharsets.UTF_8);
         DatagramPacket packet = new DatagramPacket(dataBytes, dataBytes.length, address, port);
         socket.send(packet);
     }
-    // Nhận dữ liệu từ Server
+    // Nhan du lieu tu Server
     private String receiveData(DatagramSocket socket) throws IOException {
         DatagramPacket packet = new DatagramPacket(new byte[bufferSize], bufferSize);
         socket.receive(packet);
