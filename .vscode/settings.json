@@ -22,13 +22,27 @@
     },
 
     // Terminal settings
-    "terminal.integrated.defaultProfile.windows": "PowerShell",
-    "java.project.sourcePaths": [
-        "."
-    ],
+    // "terminal.integrated.shellArgs.windows": ["-NoExit", "/c", "chcp.com 65001"],
+
+
+
     "java.project.referencedLibraries": [
         "lib/**/*.jar"
 
     ],
-    "java.debug.settings.onBuildFailureProceed": true
+    "java.debug.settings.onBuildFailureProceed": true,
+    "java.debug.settings.vmArgs": "-Dfile.encoding=UTF-8",
+    "terminal.integrated.profiles.windows": {
+        "PowerShell": {
+            "source": "PowerShell",
+            "icon": "terminal-powershell",
+            "args": [
+                "-NoExit",
+                "-Command",
+                "chcp 65001"
+            ]
+        }
+    },
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "terminal.integrated.fontFamily": "'Cascadia Code', Consolas, 'Courier New', monospace"
 }
