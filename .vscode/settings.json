@@ -44,5 +44,8 @@
         }
     },
     "terminal.integrated.defaultProfile.windows": "PowerShell",
-    "terminal.integrated.fontFamily": "'Cascadia Code', Consolas, 'Courier New', monospace"
+    "terminal.integrated.fontFamily": "'Cascadia Code', Consolas, 'Courier New', monospace",
+    "[json]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    }
 }
