@@ -15,7 +15,7 @@ import java.util.Arrays;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class bai7_Server {
+public class Bai2_3123410245_HuaMinhNhat_Server {
     private int port;
     private int bufferSize;
     private DatagramPacket receivePacket;
@@ -24,7 +24,7 @@ public class bai7_Server {
     private static final String API_KEY = "WXiL3IW2Ss0LkLdhVE1QTQaQ29fD6BMZ";
     private static final String LOCATION = "10.8231,106.6297";
 
-    public bai7_Server(int port, int bufferSize) {
+    public Bai2_3123410245_HuaMinhNhat_Server(int port, int bufferSize) {
         this.port = port;
         this.bufferSize = bufferSize;
     }
@@ -155,7 +155,7 @@ public class bai7_Server {
 
     public static void main(String[] args) {
         // Tang bufferSize len 4096 de chua du chuoi du bao thoi tiet nhieu ngay ma khong bi cat ngang
-        bai7_Server server = new bai7_Server(1234, 4096);
+        Bai2_3123410245_HuaMinhNhat_Server server = new Bai2_3123410245_HuaMinhNhat_Server(1234, 4096);
         server.start();
     }
 }

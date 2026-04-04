@@ -1,0 +1,42 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Bai2_3123410245_HuaMinhNhat_Client",
+      "request": "launch",
+      "mainClass": "week7.Bai2_3123410245_HuaMinhNhat_Client",
+      "projectName": "LTM_d3834721"
+    },
+    {
+      "type": "java",
+      "name": "Bai2_3123410245_HuaMinhNhat_Server",
+      "request": "launch",
+      "mainClass": "week7.Bai2_3123410245_HuaMinhNhat_Server",
+      "projectName": "LTM_d3834721"
+    },
+    {
+      "type": "java",
+      "name": "Client",
+      "request": "launch",
+      "mainClass": "week9.Client",
+      "projectName": "LTM_d3834721"
+    },
+    {
+      "type": "java",
+      "name": "Ex1_Server",
+      "request": "launch",
+      "mainClass": "week9.Ex1_Server",
+      "projectName": "LTM_d3834721"
+    },
+    {
+      "type": "java",
+      "name": "Current File",
+      "request": "launch",
+      "mainClass": "${file}"
+    }
+  ]
+}

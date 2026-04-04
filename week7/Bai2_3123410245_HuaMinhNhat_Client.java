@@ -8,12 +8,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Scanner;
 
-public class bai7_Client {
+public class Bai2_3123410245_HuaMinhNhat_Client {
     private String host;
     private int port;
     private int bufferSize;
 
-    public bai7_Client(String host, int port, int bufferSize) {
+    public Bai2_3123410245_HuaMinhNhat_Client(String host, int port, int bufferSize) {
         this.host = host;
         this.port = port;
         this.bufferSize = bufferSize;
@@ -73,7 +73,7 @@ public class bai7_Client {
     }
 
     public static void main(String[] args) {
-        bai7_Client client = new bai7_Client("localhost", 1234, 1024);
+        Bai2_3123410245_HuaMinhNhat_Client client = new Bai2_3123410245_HuaMinhNhat_Client("localhost", 1234, 1024);
         client.start();
     }
 }

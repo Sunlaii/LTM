@@ -5,32 +5,42 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.net.UnknownHostException;
-import java.util.Scanner;
 
 public class Client {
     public static void main(String[] args) {
-        String hostname = "localhost";
+        String serverAddress = "localhost";
         int port = 1234;
+
         try (
-                Socket socket = new Socket(hostname, port);
-                PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-                BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                Scanner scanner = new Scanner(System.in)
+            Socket socket = new Socket(serverAddress, port);
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in))
         ) {
-            System.out.println("Connected to server. Enter message (type 'bye' to exit):");
+            System.out.println("Da ket noi thanh cong toi Server TCP tai port " + port);
+
             String userInput;
-            do {
-                System.out.print("Client: ");
-                userInput = scanner.nextLine();
-                writer.println(userInput);
-                String serverResponse = reader.readLine();
-                System.out.println("Server: " + serverResponse);
-            } while (!"bye".equalsIgnoreCase(userInput.trim()));
-        } catch (UnknownHostException ex) {
-            System.out.println("Server not found: " + ex.getMessage());
-        } catch (IOException ex) {
-            System.out.println("I/O error: " + ex.getMessage());
+            while (true) {
+                System.out.print("Nhap ki tu: ");
+                userInput = stdIn.readLine();
+
+                if (userInput == null) break;
+
+                // Gui du lieu len Server
+                out.println(userInput);
+
+
+                // Nhan va hien thi phan hoi IN HOA tu Server
+                String response = in.readLine();
+                if (response != null) {
+                    System.out.println("Server tra ve: " + response);
+                } else {
+                    System.out.println("Server da dong ket noi.");
+                    break;
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Khong the ket noi den may chu: " + e.getMessage());
         }
     }
 }

@@ -3,70 +3,25 @@ package week9;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 public class Ex1_Server {
-    private static final int PORT = 1234;
-    private static final int N_THREADS = 10;
-
     public static void main(String[] args) {
-        ExecutorService executorService = Executors.newFixedThreadPool(N_THREADS);
-        System.out.println("ThreadPool Server đang khởi tạo với " + N_THREADS + " thread...");
+        int port = 1234;
 
-        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-            System.out.println("Server đang lắng nghe trên cổng " + PORT + "...");
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
+            System.out.println("Server dang khoi chay va lang nghe tai port " + port + "...");
 
-            // Shutdown hook để đóng ExecutorService khi ứng dụng thoát (Ctrl+C)
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                System.out.println("Đang shutdown ExecutorService...");
-                shutdownExecutor(executorService);
-                System.out.println("ExecutorService đã shutdown.");
-            }));
+            while (true) {
+                // Main thread cho client ket noi
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("\n[+] Co Client moi ket noi tu: " + clientSocket.getInetAddress().getHostAddress() + " (Port giao tiep: " + clientSocket.getPort() + ")");
 
-            while (!executorService.isShutdown()) {
-                try {
-                    System.out.println("Đang chờ client kết nối...");
-                    Socket clientSocket = serverSocket.accept();
-                    System.out.println("Client mới đã kết nối: " + clientSocket.getInetAddress().getHostAddress());
-
-                    clientHandle clientHandler = new clientHandle(clientSocket);
-                    executorService.execute(clientHandler);
-                } catch (IOException e) {
-                    if (executorService.isShutdown()) {
-                        System.out.println("Server socket đã đóng do executor shutdown.");
-                        break;
-                    }
-                    System.err.println("Lỗi khi chấp nhận kết nối client: " + e.getMessage());
-                }
+                // Tao va bat dau mot Thread moi de xu ly doc lap cho client nay
+                clientHandle clientThread = new clientHandle(clientSocket);
+                clientThread.start();
             }
-        } catch (IOException ex) {
-            System.err.println("Không thể khởi động server trên cổng " + PORT + ": " + ex.getMessage());
-            shutdownExecutor(executorService);
-        } finally {
-            if (!executorService.isTerminated()) {
-                System.out.println("Thực hiện shutdown cuối cùng cho ExecutorService...");
-                shutdownExecutor(executorService);
-            }
-            System.out.println("Server đã dừng.");
-        }
-    }
-
-    // Phương thức shutdown ExecutorService an toàn
-    private static void shutdownExecutor(ExecutorService executor) {
-        executor.shutdown(); // Ngừng nhận task mới
-        try {
-            // Đợi 60s cho các task hiện tại hoàn thành
-            if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
-                executor.shutdownNow(); // Hủy các task đang chạy nếu quá thời gian chờ
-                // Đợi tiếp 60s để các task bị hủy phản hồi
-                if (!executor.awaitTermination(60, TimeUnit.SECONDS))
-                    System.err.println("ExecutorService không thể dừng hẳn.");
-            }
-        } catch (InterruptedException ie) {
-            executor.shutdownNow();
-            Thread.currentThread().interrupt();
+        } catch (IOException e) {
+            System.err.println("Loi Server: " + e.getMessage());
         }
     }
 }
