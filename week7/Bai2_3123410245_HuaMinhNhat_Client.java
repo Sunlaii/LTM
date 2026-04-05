@@ -26,11 +26,11 @@ public class Bai2_3123410245_HuaMinhNhat_Client {
             socket.setSoTimeout(5000); // Dat thoi gian timeout
             InetAddress address = InetAddress.getByName(host);
 
-            System.out.println("=== CHUONG TRINH TRA CUU THOI TIET TP.HCM ===");
+            System.out.println("=== CHUONG TRINH TRA CUU THOI TIET ===");
             System.out.println("Cac lua chon:");
-            System.out.println(" Nhap '1'  : De tra cuu thoi tiet 1 ngay");
-            System.out.println(" Nhap '7'  : De tra cuu thoi tiet 7 ngay");
-            System.out.println(" Nhap 'exit': De thoat chuong trinh");
+            System.out.println(" Nhap 'weather <dia danh>' : De tra cuu thoi tiet tai mot dia diem.");
+            System.out.println("                             Vi du: weather ha giang");
+            System.out.println(" Nhap 'exit'               : De thoat chuong trinh");
             System.out.println("=============================================");
 
             while (true) {
@@ -55,7 +55,7 @@ public class Bai2_3123410245_HuaMinhNhat_Client {
     }
 
     private String getInput(Scanner scanner) {
-        System.out.print("Nhap lua chon cua ban (1/7): ");
+        System.out.print("Nhap yeu cau cua ban: ");
         return scanner.nextLine().trim();
     }
 
