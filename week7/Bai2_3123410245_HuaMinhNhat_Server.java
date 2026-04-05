@@ -30,7 +30,7 @@ public class Bai2_3123410245_HuaMinhNhat_Server {
 
     public void start() {
         try (DatagramSocket socket = new DatagramSocket(port)) {
-            System.out.println("Server tra cuu thoi tiet dang chay o port: " + port);
+            System.out.println("Server tra cứu thoi tiet dang chay o port: " + port);
             while (true) {
                 String receivedData = receivedData(socket);
                 System.out.println("Server nhan yeu cau: " + receivedData);
@@ -72,7 +72,8 @@ public class Bai2_3123410245_HuaMinhNhat_Server {
 
             // Encode va doi dau "+" thanh "%20" de giu dung khoang trang
             String encodedLocation = URLEncoder.encode(searchLocation, StandardCharsets.UTF_8.toString()).replace("+", "%20");
-
+            // In ra chuoi da encode de debug
+            System.out.println("[DEBUG] Chuoi da encode gui len API: " + encodedLocation);
             // Goi API Realtime cua Tomorrow.io
             String weatherUrl = "https://api.tomorrow.io/v4/weather/realtime?location=" + encodedLocation + "&apikey=" + TOMORROW_API_KEY;
 

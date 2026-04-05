@@ -9,21 +9,28 @@
       "name": "Bai2_3123410245_HuaMinhNhat_Client",
       "request": "launch",
       "mainClass": "week7.Bai2_3123410245_HuaMinhNhat_Client",
-      "projectName": "LTM_d3834721"
+      "projectName": "LTM_d3834721",
+      "encoding": "UTF-8",
+
     },
     {
       "type": "java",
       "name": "Bai2_3123410245_HuaMinhNhat_Server",
       "request": "launch",
       "mainClass": "week7.Bai2_3123410245_HuaMinhNhat_Server",
-      "projectName": "LTM_d3834721"
+      "projectName": "LTM_d3834721",
+      "encoding": "UTF-8",
+
     },
     {
       "type": "java",
       "name": "Client",
       "request": "launch",
       "mainClass": "week9.Client",
-      "projectName": "LTM_d3834721"
+      "projectName": "LTM_d3834721",
+      "encoding": "UTF-8",
+
+
     },
     {
       "type": "java",
