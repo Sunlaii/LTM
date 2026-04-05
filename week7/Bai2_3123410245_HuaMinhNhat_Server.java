@@ -1,7 +1,6 @@
 package week7;
 
 import java.io.BufferedReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -13,8 +12,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-// Khai bao thu vien org.json
-import org.json.JSONArray;
+
 import org.json.JSONObject;
 
 public class Bai2_3123410245_HuaMinhNhat_Server {
@@ -38,11 +36,11 @@ public class Bai2_3123410245_HuaMinhNhat_Server {
                 System.out.println("Server nhan yeu cau: " + receivedData);
 
                 if (receivedData.equalsIgnoreCase("exit")) {
-                    System.out.println("Server dong ket noi.");
+                    System.out.println("Server dong ket noi do Client yeu cau.");
                     break;
                 }
 
-                // Cat chuoi voi ky tu khoang trang, toi da 2 phan: "weather" va "dia danh"
+                // Cat chuoi thanh 2 phan: [0] = lenh, [1] = phan dia danh phia sau
                 String[] parts = receivedData.split(" ", 2);
                 String response;
 
@@ -69,52 +67,54 @@ public class Bai2_3123410245_HuaMinhNhat_Server {
 
     private String getWeatherByLocation(String locationName) {
         try {
-            // Encode dia danh, dac biet ho tro tieng Viet co dau hoac khoang trang
-            String encodedLocation = URLEncoder.encode(locationName, StandardCharsets.UTF_8.toString());
+            // Them chu "Vietnam" (KHONG CO DAU PHAY) de API biet tim o VN, khong bi nham sang chau Au
+            String searchLocation = locationName + " Vietnam";
+
+            // Encode va doi dau "+" thanh "%20" de giu dung khoang trang
+            String encodedLocation = URLEncoder.encode(searchLocation, StandardCharsets.UTF_8.toString()).replace("+", "%20");
+
+            // Goi API Realtime cua Tomorrow.io
             String weatherUrl = "https://api.tomorrow.io/v4/weather/realtime?location=" + encodedLocation + "&apikey=" + TOMORROW_API_KEY;
 
             String weatherResponse = getApiResponse(weatherUrl);
             JSONObject responseObject = new JSONObject(weatherResponse);
 
-            // Kiem tra xem API co tra ve loi khong (VD: dia danh khong ton tai)
+            // Kiem tra xem API co tra ve loi khong
             if (responseObject.has("code")) {
-                String message = responseObject.optString("message", responseObject.optString("type", "Lỗi không xác định từ API."));
-                return "Loi tra cuu (" + locationName + "): " + message;
+                String message = responseObject.optString("message", "Loi tu Tomorrow.io API.");
+                return "Loi khi tra cuu (" + locationName + "): " + message;
             }
 
+            // Phan tich lay truong "temperature"
             JSONObject data = responseObject.getJSONObject("data");
             JSONObject values = data.getJSONObject("values");
             double temperature = values.getDouble("temperature");
 
-            JSONObject location = responseObject.optJSONObject("location");
-            // Neu API khong co truong name, dung luon ten ma user da nhap
-            String name = (location != null && location.has("name")) ? location.getString("name") : locationName;
-
-            return "Nhiet do hien tai o " + name + " la: " + temperature + " do C";
+            return "Nhiet do hien tai tai " + locationName + " la: " + temperature + " do C";
 
         } catch (Exception e) {
             e.printStackTrace();
-            return "Loi he thong khi tra cuu thoi tiet: " + e.getMessage();
+            return "Loi he thong xu ly JSON khi tra cuu: " + e.getMessage();
         }
     }
 
+    // Ham goi API an toan (bat ca InputStream lan ErrorStream de khong bi crash ung dung)
     private String getApiResponse(String urlString) throws IOException {
         URL url = new URL(urlString);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
-        conn.setConnectTimeout(5000); // Thiet lap thoi gian cho de tranh bi treo
+        conn.setConnectTimeout(5000);
         conn.setReadTimeout(5000);
 
         int status = conn.getResponseCode();
         InputStream is;
 
-        // Neu tra ve 200 OK thi doc tu InputStream, neu loi (400, 401, 429...) thi doc tu ErrorStream
         if (status >= 200 && status < 300) {
             is = conn.getInputStream();
         } else {
             is = conn.getErrorStream();
             if (is == null) {
-                return "{\"code\": \"" + status + "\", \"message\": \"Lỗi HTTP không xác định.\"}";
+                return "{\"code\": \"" + status + "\", \"message\": \"HTTP Error\"}";
             }
         }
 
@@ -140,7 +140,6 @@ public class Bai2_3123410245_HuaMinhNhat_Server {
     }
 
     public static void main(String[] args) {
-        // Port hien tai dang la 9876, hay chac chan file Client cua ban cung dung Port 9876 nay
         Bai2_3123410245_HuaMinhNhat_Server server = new Bai2_3123410245_HuaMinhNhat_Server(9876, 1024);
         server.start();
     }

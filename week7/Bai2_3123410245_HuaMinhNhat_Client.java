@@ -20,37 +20,40 @@ public class Bai2_3123410245_HuaMinhNhat_Client {
     }
 
     public void start() {
+        // Them StandardCharsets.UTF_8.name() de doc tieng Viet tu ban phim
         try (DatagramSocket socket = new DatagramSocket();
-             Scanner scanner = new Scanner(System.in)) {
+             Scanner scanner = new Scanner(System.in, StandardCharsets.UTF_8.name())) {
 
-            socket.setSoTimeout(5000); // Dat thoi gian timeout
+            socket.setSoTimeout(5000);
             InetAddress address = InetAddress.getByName(host);
 
             System.out.println("=== CHUONG TRINH TRA CUU THOI TIET ===");
             System.out.println("Cac lua chon:");
-            System.out.println(" Nhap 'weather <dia danh>' : De tra cuu thoi tiet tai mot dia diem.");
+            System.out.println(" Nhap 'weather <dia danh>' : De tra cuu nhiet do hien tai.");
             System.out.println("                             Vi du: weather ha giang");
             System.out.println(" Nhap 'exit'               : De thoat chuong trinh");
             System.out.println("=============================================");
 
             while (true) {
                 String input = getInput(scanner);
-                sendData(socket, address, input);
 
                 if (input.equalsIgnoreCase("exit")) {
+                    sendData(socket, address, input);
                     System.out.println("Client da ket thuc.");
                     break;
                 }
+
+                sendData(socket, address, input);
 
                 try {
                     String receivedData = receiveData(socket);
                     System.out.println("=> KET QUA: " + receivedData + "\n");
                 } catch (IOException e) {
-                    System.out.println("Loi: Khong nhan duoc phan hoi tu Server (Timeout).");
+                    System.out.println("=> Loi: Khong nhan duoc phan hoi tu Server (Timeout).\n");
                 }
             }
         } catch (IOException e) {
-            System.err.println(e.getMessage());
+            System.err.println("Loi socket: " + e.getMessage());
         }
     }
 
@@ -73,7 +76,7 @@ public class Bai2_3123410245_HuaMinhNhat_Client {
     }
 
     public static void main(String[] args) {
-        Bai2_3123410245_HuaMinhNhat_Client client = new Bai2_3123410245_HuaMinhNhat_Client("localhost", 1234, 1024);
+        Bai2_3123410245_HuaMinhNhat_Client client = new Bai2_3123410245_HuaMinhNhat_Client("localhost", 9876, 1024);
         client.start();
     }
 }
