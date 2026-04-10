@@ -12,7 +12,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-
+// Khai bao thu vien org.json
 import org.json.JSONObject;
 
 public class Bai2_3123410245_HuaMinhNhat_Server {
@@ -30,7 +30,7 @@ public class Bai2_3123410245_HuaMinhNhat_Server {
 
     public void start() {
         try (DatagramSocket socket = new DatagramSocket(port)) {
-            System.out.println("Server tra cứu thoi tiet dang chay o port: " + port);
+            System.out.println("Server da chuc nang dang chay o port: " + port);
             while (true) {
                 String receivedData = receivedData(socket);
                 System.out.println("Server nhan yeu cau: " + receivedData);
@@ -40,15 +40,51 @@ public class Bai2_3123410245_HuaMinhNhat_Server {
                     break;
                 }
 
-                // Cat chuoi thanh 2 phan: [0] = lenh, [1] = phan dia danh phia sau
-                String[] parts = receivedData.split(" ", 2);
-                String response;
+                // Tach chuoi boi cac khoang trang (ho tro nhieu khoang trang)
+                String[] parts = receivedData.split("\\s+");
+                String response = "";
 
-                if (parts.length == 2 && parts[0].equalsIgnoreCase("weather")) {
-                    String locationName = parts[1].trim();
-                    response = getWeatherByLocation(locationName);
+                if (parts.length > 0) {
+                    String command = parts[0].toLowerCase();
+
+                    // XU LY LENH: weather
+                    if (command.equals("weather") && parts.length >= 2) {
+                        // Lay toan bo phan dia danh phia sau chu "weather" (bo qua 7 ky tu dau tien)
+                        String locationName = receivedData.substring(7).trim();
+                        response = getWeatherByLocation(locationName);
+                    }
+                    // XU LY LENH: convert
+                    else if (command.equals("convert") && parts.length == 4) {
+                        try {
+                            int sourceBase = Integer.parseInt(parts[1]);
+                            int targetBase = Integer.parseInt(parts[2]);
+                            String numberStr = parts[3];
+
+                            // Kiem tra gioi han cua co so (Java ho tro tu co so 2 den 36)
+                            if (sourceBase < 2 || sourceBase > 36 || targetBase < 2 || targetBase > 36) {
+                                response = "Loi: Co so ho tro phai nam trong khoang tu 2 den 36.";
+                            } else {
+                                // Buoc 1: Chuyen so tu co so nguon ve he thap phan (Decimal)
+                                long decimalValue = Long.parseLong(numberStr, sourceBase);
+
+                                // Buoc 2: Chuyen tu he thap phan sang he co so dich
+                                String convertedNumber = Long.toString(decimalValue, targetBase).toUpperCase();
+
+                                response = "Kết quả đổi " + numberStr + " từ cơ số " + sourceBase + "sang cơ số " + targetBase + " là: " + convertedNumber;
+                            }
+                        } catch (NumberFormatException e) {
+                            // Bat loi neu nguoi dung nhap sai co so (VD: he 2 ma nhap so 9) hoac chua chu cai rac
+                            response = "Loi: So hoac co so khong hop le.";
+                        }
+                    }
+                    // XU LY KHI NHAP SAI LENH
+                    else {
+                        response = "Cu phap khong hop le. Cac lenh ho tro:\n"
+                                 + " 1. Tra cuu thoi tiet: weather <dia danh>\n"
+                                 + " 2. Chuyen co so     : convert <co_so_nguon> <co_so_dich> <so>";
+                    }
                 } else {
-                    response = "Cu phap khong hop le. Su dung: weather <dia danh> (VD: weather ha giang)";
+                    response = "Yeu cau khong duoc de rong.";
                 }
 
                 sendData(socket, response);
@@ -67,26 +103,19 @@ public class Bai2_3123410245_HuaMinhNhat_Server {
 
     private String getWeatherByLocation(String locationName) {
         try {
-            // Them chu "Vietnam" (KHONG CO DAU PHAY) de API biet tim o VN, khong bi nham sang chau Au
             String searchLocation = locationName + " Vietnam";
-
-            // Encode va doi dau "+" thanh "%20" de giu dung khoang trang
             String encodedLocation = URLEncoder.encode(searchLocation, StandardCharsets.UTF_8.toString()).replace("+", "%20");
-            // In ra chuoi da encode de debug
-            System.out.println("[DEBUG] Chuoi da encode gui len API: " + encodedLocation);
-            // Goi API Realtime cua Tomorrow.io
+
             String weatherUrl = "https://api.tomorrow.io/v4/weather/realtime?location=" + encodedLocation + "&apikey=" + TOMORROW_API_KEY;
 
             String weatherResponse = getApiResponse(weatherUrl);
             JSONObject responseObject = new JSONObject(weatherResponse);
 
-            // Kiem tra xem API co tra ve loi khong
             if (responseObject.has("code")) {
                 String message = responseObject.optString("message", "Loi tu Tomorrow.io API.");
                 return "Loi khi tra cuu (" + locationName + "): " + message;
             }
 
-            // Phan tich lay truong "temperature"
             JSONObject data = responseObject.getJSONObject("data");
             JSONObject values = data.getJSONObject("values");
             double temperature = values.getDouble("temperature");
@@ -99,7 +128,6 @@ public class Bai2_3123410245_HuaMinhNhat_Server {
         }
     }
 
-    // Ham goi API an toan (bat ca InputStream lan ErrorStream de khong bi crash ung dung)
     private String getApiResponse(String urlString) throws IOException {
         URL url = new URL(urlString);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
