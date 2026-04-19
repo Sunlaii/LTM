@@ -1,4 +1,4 @@
-package week10;
+package baiNop3;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -37,9 +37,8 @@ class ClientHandler implements Runnable {
         try {
             if (reader != null) {
                 reader.close();
-
-            }
-        } catch (IOException e) {
+        
+            }} catch (IOException e) {
             /* ignore */ }
         try {
             if (writer != null) {
@@ -51,9 +50,8 @@ class ClientHandler implements Runnable {
         try {
             if (clientSocket != null && !clientSocket.isClosed()) {
                 clientSocket.close();
-
-            }
-        } catch (IOException e) {
+        
+            }} catch (IOException e) {
             /* ignore */ }
         System.out.println("Resources closed for: " + (clientId != null ? clientId : "unregistered"));
     }
@@ -114,37 +112,27 @@ class ClientHandler implements Runnable {
             String messageFromClient;
             while (running.get() && (messageFromClient = reader.readLine()) != null) {
                 System.out.println("<- [" + this.clientId + "]: " + messageFromClient);
-
-                String trimmedMessage = messageFromClient.trim();
-
-                // 1. Xử lý lệnh thoát
-                if ("bye".equalsIgnoreCase(trimmedMessage)) {
+                if ("bye".equalsIgnoreCase(messageFromClient.trim())) {
                     running.set(false);
                     sendMessage("SERVER: Bạn đang rời khỏi phòng chat...");
                     break;
                 }
-
-                // 2. TÍNH NĂNG MỚI: Xử lý lệnh #list
-                if ("#list".equalsIgnoreCase(trimmedMessage)) {
-                    String onlineUsers = ServerMultiClient.getOnlineUsers();
-                    sendMessage("SERVER: Danh sách user đang online: " + onlineUsers);
-                    continue; // Chuyển sang vòng lặp tiếp theo, bỏ qua việc gửi tin nhắn đi
-                }
-
-                // 3. Phân tích tin nhắn gửi đi ---
-                String[] parts = trimmedMessage.split("#", 2);
+                // Phân tích tin nhắn ---
+                String[] parts = messageFromClient.split("#", 2);
                 if (parts.length == 2) {
                     String destination = parts[0].trim();
                     String content = parts[1];
 
                     if ("all".equalsIgnoreCase(destination)) {
+                        // Định dạng tin nhắn broadcast và gọi helper của server
                         String broadcastContent = "[" + this.clientId + " -> ALL]: " + content;
                         ServerMultiClient.broadcastMessage(broadcastContent, this);
                     } else {
+                        // Gửi tin nhắn riêng tư qua helper của server
                         ServerMultiClient.sendPrivateMessage(destination, content, this);
                     }
                 } else {
-                    sendMessage("SERVER: Định dạng tin nhắn không hợp lệ. Sử dụng 'all#message', 'recipient_id#message', hoặc '#list'.");
+                    sendMessage("SERVER: Định dạng tin nhắn không hợp lệ. Sử dụng 'all#message' hoặc 'recipient_id#message'.");
                 }
             }
 

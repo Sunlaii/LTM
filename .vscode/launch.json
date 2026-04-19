@@ -6,6 +6,13 @@
   "configurations": [
     {
       "type": "java",
+      "name": "ServerMultiClient",
+      "request": "launch",
+      "mainClass": "week10.ServerMultiClient",
+      "projectName": "LTM_d3834721"
+    },
+    {
+      "type": "java",
       "name": "Server",
       "request": "launch",
       "mainClass": "week10.Server",

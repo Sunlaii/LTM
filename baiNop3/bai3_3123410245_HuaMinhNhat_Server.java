@@ -1,4 +1,4 @@
-package week10;
+package baiNop3;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -9,7 +9,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class ServerMultiClient {
+public class bai3_3123410245_HuaMinhNhat_Server {
 
     private static final int PORT = 12345;
     // Sử dụng ConcurrentHashMap để quản lý clients
@@ -42,19 +42,6 @@ public class ServerMultiClient {
             shutdownExecutorService();
             System.out.println("Server đã dừng hẳn.");
         }
-    }
-
-    /**
-     * Lấy danh sách các user đang online.
-     *
-     * @return Chuỗi chứa tên các user, cách nhau bằng dấu phẩy.
-     */
-    public static String getOnlineUsers() {
-        if (clients.isEmpty()) {
-            return "Không có ai online.";
-        }
-        // clients.keySet() trả về tập hợp các tên đăng nhập (clientId)
-        return String.join(", ", clients.keySet());
     }
 
     /**
